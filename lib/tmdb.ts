@@ -29,7 +29,11 @@ async function findTmdbIdentity(title: string): Promise<TmdbIdentity | null> {
     url.searchParams.set("include_adult", "false");
 
     const res = await fetch(url.toString());
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.warn(`[tmdb] search/multi failed (${res.status}) for "${title}": ${errText}`);
+      return null;
+    }
 
     const data = await res.json();
     const results: TmdbSearchResult[] = data?.results ?? [];
@@ -46,8 +50,8 @@ async function findTmdbIdentity(title: string): Promise<TmdbIdentity | null> {
       mediaType: best.media_type as "movie" | "tv",
       posterUrl: best.poster_path ? `${TMDB_IMAGE_BASE}${best.poster_path}` : null,
     };
-  } catch {
-    // Poster/identity lookup is a nice-to-have — never let it break recommendations.
+  } catch (err) {
+    console.warn(`[tmdb] search/multi threw for "${title}":`, err);
     return null;
   }
 }
@@ -88,7 +92,11 @@ export async function getMovieDetails(
     url.searchParams.set("append_to_response", "videos,credits");
 
     const res = await fetch(url.toString());
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.warn(`[tmdb] details fetch failed (${res.status}) for id ${tmdbId}: ${errText}`);
+      return null;
+    }
 
     const data = await res.json();
 
