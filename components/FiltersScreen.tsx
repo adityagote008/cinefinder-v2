@@ -8,6 +8,7 @@ import SearchInput from "./SearchInput";
 import FilterSection from "./FilterSection";
 import SelectedFilterPanel from "./SelectedFilterPanel";
 import StickyCTA from "./StickyCTA";
+import { ArrowLeft } from "./icons";
 
 interface FiltersScreenProps {
   filters: FilterState;
@@ -20,6 +21,8 @@ interface FiltersScreenProps {
   onFindMovies: () => void;
   onOpenWatchlist: () => void;
   watchlistCount: number;
+  onBack: () => void;
+  onStepClick: (step: number) => void;
 }
 
 export default function FiltersScreen({
@@ -33,6 +36,8 @@ export default function FiltersScreen({
   onFindMovies,
   onOpenWatchlist,
   watchlistCount,
+  onBack,
+  onStepClick,
 }: FiltersScreenProps) {
   const selectedLabels = FILTER_GROUPS.flatMap((group) =>
     group.options
@@ -48,7 +53,17 @@ export default function FiltersScreen({
         onWatchlist={onOpenWatchlist}
         watchlistCount={watchlistCount}
       />
-      <StepIndicator step={3} total={3} />
+      <StepIndicator step={3} total={3} onStepClick={onStepClick} />
+      <div className="px-5 pt-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-2 text-[14px] text-ink-secondary transition-colors duration-200 ease-out hover:text-ink-primary"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+      </div>
       <SearchInput value={filters.searchQuery} onChange={onSearchChange} />
 
       <div className="flex-1">

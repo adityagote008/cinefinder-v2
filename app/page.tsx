@@ -145,6 +145,14 @@ export default function Page() {
     setScreen("platforms");
   }, []);
 
+  // Lets the step dots (or a screen's own "Back" link) jump directly to any
+  // step already reached — never forward to one that hasn't been visited yet.
+  const handleStepClick = useCallback((step: number) => {
+    if (step === 1) setScreen("platforms");
+    else if (step === 2) setScreen("preferences");
+    else if (step === 3) setScreen("filters");
+  }, []);
+
   const handleFindMovies = useCallback(async () => {
     const filterLabels = {
       mood: labelsForGroup("mood"),
@@ -251,6 +259,8 @@ export default function Page() {
         onToggleRuntime={toggleRuntime}
         onContinue={() => setScreen("filters")}
         onSkip={() => setScreen("filters")}
+        onBack={() => setScreen("platforms")}
+        onStepClick={handleStepClick}
         onReset={handleReset}
       />
     );
@@ -269,6 +279,8 @@ export default function Page() {
         onFindMovies={handleFindMovies}
         onOpenWatchlist={handleOpenWatchlist}
         watchlistCount={watchlist.length}
+        onBack={() => setScreen("preferences")}
+        onStepClick={handleStepClick}
       />
     );
   }

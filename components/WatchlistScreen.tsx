@@ -34,7 +34,7 @@ export default function WatchlistScreen({
       </div>
 
       <div className="flex-1 px-5 pb-10">
-        <p className="mt-4 text-[11px] italic tracking-wide text-ink-faint">
+        <p className="mt-4 text-[12px] font-medium italic tracking-wide text-red-primary/80">
           Witness the Cinema
         </p>
         <h1 className="mt-1 text-[24px] font-extrabold text-ink-primary">Your Watchlist</h1>

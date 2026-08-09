@@ -5,6 +5,7 @@ import { LANGUAGE_OPTIONS, RUNTIME_OPTIONS } from "@/lib/constants";
 import Header from "./Header";
 import StepIndicator from "./StepIndicator";
 import FilterChip from "./FilterChip";
+import { ArrowLeft } from "./icons";
 
 interface PreferencesScreenProps {
   languages: string[];
@@ -13,6 +14,8 @@ interface PreferencesScreenProps {
   onToggleRuntime: (id: string) => void;
   onContinue: () => void;
   onSkip: () => void;
+  onBack: () => void;
+  onStepClick: (step: number) => void;
   onReset: () => void;
 }
 
@@ -23,14 +26,25 @@ export default function PreferencesScreen({
   onToggleRuntime,
   onContinue,
   onSkip,
+  onBack,
+  onStepClick,
   onReset,
 }: PreferencesScreenProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header showReset onReset={onReset} />
-      <StepIndicator step={2} total={3} />
+      <StepIndicator step={2} total={3} onStepClick={onStepClick} />
 
       <div className="flex-1 px-5 pt-6">
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-3 flex items-center gap-2 text-[14px] text-ink-secondary transition-colors duration-200 ease-out hover:text-ink-primary"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+
         <h2 className="text-[22px] font-extrabold text-ink-primary">
           Let&rsquo;s narrow it down
         </h2>
