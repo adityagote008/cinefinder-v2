@@ -171,3 +171,41 @@ export async function getWatchProviders(): Promise<TmdbProvider[]> {
     return [];
   }
 }
+
+// Pulls what's genuinely trending right now from TMDB (free, already-used
+// key, no Gemini search-grounding billing involved) so Gemini can be told
+// about real current titles instead of relying only on its training data.
+// Cached for 6 hours since "trending this week" doesn't need to be
+// second-by-second fresh.
+export async function getTrendingTitles(): Promise<string[]> {
+  const apiKey = process.env.TMDB_API_KEY;
+  if (!apiKey) return [];
+
+  try {
+    const url = new URL(`${TMDB_BASE}/trending/all/week`);
+    url.searchParams.set("api_key", apiKey);
+
+    const res = await fetch(url.toString(), { next: { revalidate: 21600 } });
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const results: Array<{
+      title?: string;
+      name?: string;
+      media_type: string;
+      release_date?: string;
+      first_air_date?: string;
+    }> = data?.results ?? [];
+
+    return results
+      .slice(0, 15)
+      .map((r) => {
+        const title = r.title ?? r.name;
+        const year = (r.release_date ?? r.first_air_date ?? "").slice(0, 4);
+        return title ? `${title}${year ? ` (${year})` : ""}` : null;
+      })
+      .filter((t): t is string => t !== null);
+  } catch {
+    return [];
+  }
+}

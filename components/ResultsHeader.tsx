@@ -1,3 +1,5 @@
+import CinemaTagline from "./CinemaTagline";
+
 interface ResultsHeaderProps {
   title: string;
   count: number;
@@ -6,7 +8,7 @@ interface ResultsHeaderProps {
 export default function ResultsHeader({ title, count }: ResultsHeaderProps) {
   return (
     <div className="px-5 pt-6">
-      <p className="mb-2 text-[12px] font-medium italic tracking-wide text-red-primary/80">Witness the Cinema</p>
+      <CinemaTagline className="mb-2" />
       <p className="flex items-center gap-1.5 text-[12px] font-bold tracking-widest2 text-red-primary">
         <span aria-hidden="true">🎯</span> CURATED FOR YOU
       </p>

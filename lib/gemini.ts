@@ -16,9 +16,10 @@ interface GeminiRequestParams {
   };
   excludeTitles: string[];
   count: number;
+  trendingTitles?: string[];
 }
 
-function buildPrompt({ filters, excludeTitles, count }: GeminiRequestParams): string {
+function buildPrompt({ filters, excludeTitles, count, trendingTitles }: GeminiRequestParams): string {
   const parts: string[] = [];
   if (filters.searchQuery) parts.push(`Free-text request: "${filters.searchQuery}"`);
   if (filters.mood.length) parts.push(`Mood: ${filters.mood.join(", ")}`);
@@ -37,9 +38,17 @@ function buildPrompt({ filters, excludeTitles, count }: GeminiRequestParams): st
     ? `\nDo not repeat any of these already-shown titles: ${excludeTitles.join(", ")}.`
     : "";
 
+  // Optional, non-mandatory awareness of what's genuinely trending right
+  // now (sourced live from TMDB, not Gemini's own memory) — this exists so
+  // recent, current titles are actually available as candidates, not to
+  // override normal relevance-based selection.
+  const trendingContext = trendingTitles?.length
+    ? `\n\nFor awareness only — these titles are verified to be genuinely trending this week: ${trendingTitles.join(", ")}. If one is a strong match for the criteria above, feel free to include it; otherwise ignore this list entirely and recommend your best matches regardless of whether they're on it.`
+    : "";
+
   return `You are a movie/TV recommendation engine. Based on the following criteria, recommend exactly ${count} titles.
 
-${criteria}${exclusions}
+${criteria}${exclusions}${trendingContext}
 
 Respond with ONLY a raw JSON array (no markdown, no code fences, no commentary) of objects shaped exactly like:
 [{"title": string, "year": string, "genre": string, "rating": string, "reason": string}]

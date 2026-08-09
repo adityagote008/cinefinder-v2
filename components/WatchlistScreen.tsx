@@ -3,6 +3,7 @@
 import { Movie } from "@/types";
 import Header from "./Header";
 import MovieCard from "./MovieCard";
+import CinemaTagline from "./CinemaTagline";
 
 interface WatchlistScreenProps {
   watchlist: Movie[];
@@ -34,9 +35,7 @@ export default function WatchlistScreen({
       </div>
 
       <div className="flex-1 px-5 pb-10">
-        <p className="mt-4 text-[12px] font-medium italic tracking-wide text-red-primary/80">
-          Witness the Cinema
-        </p>
+        <CinemaTagline className="mt-4" />
         <h1 className="mt-1 text-[24px] font-extrabold text-ink-primary">Your Watchlist</h1>
         <p className="mt-1 text-[14px] text-ink-secondary">
           {watchlist.length === 0

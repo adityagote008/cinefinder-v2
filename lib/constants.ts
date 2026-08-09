@@ -110,6 +110,8 @@ export const GENRE_OPTIONS: ChipOption[] = [
   { id: "supernatural", label: "Supernatural", emoji: "👁️" },
   { id: "political", label: "Political", emoji: "🏛️" },
   { id: "adult-animation", label: "Adult Animation", emoji: "🎨" },
+  { id: "adult-comedy", label: "Adult Comedy", emoji: "🍸" },
+  { id: "mature-18-plus", label: "Mature (18+)" },
 ];
 
 export const CATEGORY_OPTIONS: ChipOption[] = [
@@ -136,7 +138,6 @@ export const CATEGORY_OPTIONS: ChipOption[] = [
   { id: "anthology", label: "Anthology" },
   { id: "franchise", label: "Franchise" },
   { id: "festival-favorite", label: "Festival Favorite" },
-  { id: "mature-18-plus", label: "Mature (18+)" },
 ];
 
 export const STYLE_OPTIONS: ChipOption[] = [

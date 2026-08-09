@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMovieRecommendations } from "@/lib/gemini";
-import { enrichWithPosters } from "@/lib/tmdb";
+import { enrichWithPosters, getTrendingTitles } from "@/lib/tmdb";
 
 export const runtime = "nodejs";
 
@@ -43,10 +43,15 @@ export async function POST(req: NextRequest) {
       count = 5,
     } = body ?? {};
 
+    // Runs alongside nothing else expensive here, so no real latency cost —
+    // gives Gemini free, real awareness of what's actually current this week.
+    const trendingTitles = await getTrendingTitles();
+
     const movies = await getMovieRecommendations({
       filters: { mood, genre, category, style, searchQuery, platforms, languages, runtimes },
       excludeTitles,
       count: Math.min(Math.max(Number(count) || 5, 1), 10),
+      trendingTitles,
     });
 
     const moviesWithPosters = await enrichWithPosters(movies);

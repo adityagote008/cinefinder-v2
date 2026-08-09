@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart, X } from "./icons";
+import CinemaTagline from "./CinemaTagline";
 
 interface HeaderProps {
   showReset?: boolean;
@@ -32,9 +33,7 @@ export default function Header({
           <p className="text-[11px] font-semibold tracking-widest2 text-ink-muted">
             BY <span className="text-red-primary">ASG</span>
           </p>
-          <p className="mt-0.5 text-[11px] font-medium italic tracking-wide text-red-primary/80">
-            Witness the Cinema
-          </p>
+          <CinemaTagline className="mt-0.5" />
         </div>
       </div>
 
