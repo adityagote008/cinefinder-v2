@@ -18,6 +18,8 @@ interface FiltersScreenProps {
   onClearAll: () => void;
   onReset: () => void;
   onFindMovies: () => void;
+  onOpenWatchlist: () => void;
+  watchlistCount: number;
 }
 
 export default function FiltersScreen({
@@ -29,6 +31,8 @@ export default function FiltersScreen({
   onClearAll,
   onReset,
   onFindMovies,
+  onOpenWatchlist,
+  watchlistCount,
 }: FiltersScreenProps) {
   const selectedLabels = FILTER_GROUPS.flatMap((group) =>
     group.options
@@ -38,7 +42,12 @@ export default function FiltersScreen({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header showReset onReset={onReset} />
+      <Header
+        showReset
+        onReset={onReset}
+        onWatchlist={onOpenWatchlist}
+        watchlistCount={watchlistCount}
+      />
       <StepIndicator step={3} total={3} />
       <SearchInput value={filters.searchQuery} onChange={onSearchChange} />
 

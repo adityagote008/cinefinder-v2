@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FILTER_GROUPS, LANGUAGE_OPTIONS, RUNTIME_OPTIONS, PLATFORM_OPTIONS } from "@/lib/constants";
+import { getWatchlist, toggleWatchlist } from "@/lib/watchlist";
 import { Movie, QuickPick, Screen } from "@/types";
 import { useFilters } from "@/hooks/useFilters";
 import HomeScreen from "@/components/HomeScreen";
@@ -10,6 +11,7 @@ import PreferencesScreen from "@/components/PreferencesScreen";
 import FiltersScreen from "@/components/FiltersScreen";
 import ResultsScreen from "@/components/ResultsScreen";
 import MovieDetailsScreen from "@/components/MovieDetailsScreen";
+import WatchlistScreen from "@/components/WatchlistScreen";
 
 interface ResultsContext {
   title: string;
@@ -36,6 +38,25 @@ export default function Page() {
 
   const [pendingQuickPick, setPendingQuickPick] = useState<QuickPick | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+
+  // Where to return to when the person taps "Back" from the Watchlist —
+  // whichever screen they opened it from.
+  const [screenBeforeWatchlist, setScreenBeforeWatchlist] = useState<Screen>("home");
+
+  // Personal, device-only saved titles (no backend/database involved).
+  const [watchlist, setWatchlist] = useState<Movie[]>([]);
+  useEffect(() => {
+    setWatchlist(getWatchlist());
+  }, []);
+
+  const handleToggleWatchlist = useCallback((movie: Movie) => {
+    setWatchlist((prev) => toggleWatchlist(prev, movie));
+  }, []);
+
+  const handleOpenWatchlist = useCallback(() => {
+    setScreenBeforeWatchlist(screen);
+    setScreen("watchlist");
+  }, [screen]);
 
   // Slide 2 + Slide 3 state — precision-narrowing preferences (all multi-select)
   const [platforms, setPlatforms] = useState<string[]>([]);
@@ -73,9 +94,6 @@ export default function Page() {
     [filters]
   );
 
-  // The button on the final (Mood/Genre/Category/Style) screen should only
-  // be disabled if there is truly nothing to go on — no filters selected
-  // AND no Quick Pick behind this flow.
   const canSubmit = useMemo(
     () => totalCount > 0 || pendingQuickPick !== null,
     [totalCount, pendingQuickPick]
@@ -117,9 +135,6 @@ export default function Page() {
     []
   );
 
-  // Tapping a Quick Pick card no longer jumps straight to results — it now
-  // enters the exact same slide sequence as Custom Filters: Platforms ->
-  // Preferences -> Mood/Genre/Category/Style -> Results.
   const handleQuickPick = useCallback((pick: QuickPick) => {
     setPendingQuickPick(pick);
     setScreen("platforms");
@@ -138,9 +153,6 @@ export default function Page() {
       style: labelsForGroup("style"),
     };
 
-    // Merge the original Quick Pick theme (if any) into the title and the
-    // free-text search query, so it still shapes the recommendations even
-    // though the person may also have picked extra filters afterward.
     const title = pendingQuickPick
       ? pendingQuickPick.label
       : filterLabels.mood[0] ?? filterLabels.genre[0] ?? filterLabels.category[0] ?? filterLabels.style[0] ?? "Your Picks";
@@ -203,10 +215,19 @@ export default function Page() {
     setError(null);
     setSelectedMovie(null);
     setScreen("home");
+    // Note: the watchlist is intentionally NOT cleared on reset — it's
+    // meant to persist across sessions, that's the whole point of it.
   }, [clearAll]);
 
   if (screen === "home") {
-    return <HomeScreen onQuickPick={handleQuickPick} onCustomFilters={handleCustomFilters} />;
+    return (
+      <HomeScreen
+        onQuickPick={handleQuickPick}
+        onCustomFilters={handleCustomFilters}
+        onOpenWatchlist={handleOpenWatchlist}
+        watchlistCount={watchlist.length}
+      />
+    );
   }
 
   if (screen === "platforms") {
@@ -246,6 +267,8 @@ export default function Page() {
         onClearAll={clearAll}
         onReset={handleReset}
         onFindMovies={handleFindMovies}
+        onOpenWatchlist={handleOpenWatchlist}
+        watchlistCount={watchlist.length}
       />
     );
   }
@@ -255,6 +278,24 @@ export default function Page() {
       <MovieDetailsScreen
         movie={selectedMovie}
         onBack={handleBackFromDetails}
+        onReset={handleReset}
+        isSaved={watchlist.some(
+          (m) => m.title.toLowerCase() === selectedMovie.title.toLowerCase()
+        )}
+        onToggleWatchlist={handleToggleWatchlist}
+        onOpenWatchlist={handleOpenWatchlist}
+        watchlistCount={watchlist.length}
+      />
+    );
+  }
+
+  if (screen === "watchlist") {
+    return (
+      <WatchlistScreen
+        watchlist={watchlist}
+        onSelectMovie={handleSelectMovie}
+        onToggleWatchlist={handleToggleWatchlist}
+        onBack={() => setScreen(screenBeforeWatchlist)}
         onReset={handleReset}
       />
     );
@@ -270,6 +311,9 @@ export default function Page() {
       onAdjustFilters={() => setScreen("filters")}
       onReset={handleReset}
       onSelectMovie={handleSelectMovie}
+      watchlist={watchlist}
+      onToggleWatchlist={handleToggleWatchlist}
+      onOpenWatchlist={handleOpenWatchlist}
     />
   );
 }

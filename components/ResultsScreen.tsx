@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Movie } from "@/types";
+import { isInWatchlist } from "@/lib/watchlist";
 import Header from "./Header";
 import ResultsHeader from "./ResultsHeader";
 import MovieCard from "./MovieCard";
@@ -16,6 +17,9 @@ interface ResultsScreenProps {
   onAdjustFilters: () => void;
   onReset: () => void;
   onSelectMovie: (movie: Movie) => void;
+  watchlist: Movie[];
+  onToggleWatchlist: (movie: Movie) => void;
+  onOpenWatchlist: () => void;
 }
 
 export default function ResultsScreen({
@@ -27,28 +31,43 @@ export default function ResultsScreen({
   onAdjustFilters,
   onReset,
   onSelectMovie,
+  watchlist,
+  onToggleWatchlist,
+  onOpenWatchlist,
 }: ResultsScreenProps) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header showReset onReset={onReset} />
+      <Header
+        showReset
+        onReset={onReset}
+        onWatchlist={onOpenWatchlist}
+        watchlistCount={watchlist.length}
+      />
       <ResultsHeader title={title} count={movies.length} />
 
       <div className="flex-1 px-5">
         {error && (
           <div className="mt-6 rounded-2xl border border-red-900/40 bg-red-darker/20 p-4 text-[14px] text-red-primary">
-            Couldn&apos;t load recommendations: {error}
+            Hmm, couldn&apos;t pull anything up: {error}
           </div>
         )}
 
         {!error && movies.length === 0 && !loading && (
           <div className="mt-10 text-center text-[14px] text-ink-muted">
-            No recommendations yet — tap below to generate some.
+            Nothing here yet — let&apos;s fix that.
           </div>
         )}
 
         <div className="mt-5 flex flex-col gap-3">
           {movies.map((movie, i) => (
-            <MovieCard key={`${movie.title}-${i}`} movie={movie} index={i} onSelect={onSelectMovie} />
+            <MovieCard
+              key={`${movie.title}-${i}`}
+              movie={movie}
+              index={i}
+              onSelect={onSelectMovie}
+              isSaved={isInWatchlist(watchlist, movie.title)}
+              onToggleWatchlist={onToggleWatchlist}
+            />
           ))}
         </div>
 
@@ -62,7 +81,7 @@ export default function ResultsScreen({
             className="flex items-center justify-center gap-2 rounded-2xl border border-red-900/50 bg-red-darker/25 py-3.5 text-[15px] font-bold text-red-primary disabled:opacity-50"
           >
             <span aria-hidden="true">🍿</span>
-            {loading ? "Loading…" : "Show 5 More"}
+            {loading ? "Digging up more…" : "Show 5 More"}
           </motion.button>
 
           <button
@@ -71,7 +90,7 @@ export default function ResultsScreen({
             className="flex items-center justify-center gap-2 rounded-2xl border border-border-chip bg-transparent py-3.5 text-[15px] text-ink-secondary transition-colors duration-200 ease-out hover:text-ink-primary"
           >
             <ArrowLeft className="h-4 w-4" />
-            Adjust Filters
+            Tweak My Picks
           </button>
         </div>
       </div>

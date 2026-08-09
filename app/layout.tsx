@@ -9,9 +9,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const title = "CineFinder — AI-Powered Movie & TV Recommendations";
+const title = "CineFinder — Witness the Cinema";
 const description =
-  "Discover your perfect watch with AI-powered movie and TV recommendations tailored to your exact mood, genre, platform, and vibe. Built by ASG.";
+  "Picks that actually get your taste. Discover your perfect watch across mood, genre, platform, and vibe. Built by ASG.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -132,3 +132,42 @@ export async function getMovieDetails(
     return null;
   }
 }
+
+// Fetches TMDB's official list of streaming providers with their real
+// logos, hosted by TMDB specifically for third-party apps to display —
+// this is a legitimate, sanctioned way to show real brand logos rather
+// than scraping them from elsewhere. Returns a flat list; callers match
+// against provider_name themselves (naming can vary/lag real-world rebrands).
+const TMDB_LOGO_BASE = "https://image.tmdb.org/t/p/w92";
+
+export interface TmdbProvider {
+  providerName: string;
+  logoUrl: string;
+}
+
+export async function getWatchProviders(): Promise<TmdbProvider[]> {
+  const apiKey = process.env.TMDB_API_KEY;
+  if (!apiKey) return [];
+
+  try {
+    const url = new URL(`${TMDB_BASE}/watch/providers/movie`);
+    url.searchParams.set("api_key", apiKey);
+    url.searchParams.set("watch_region", "IN");
+
+    const res = await fetch(url.toString());
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const results: Array<{ provider_name: string; logo_path: string | null }> =
+      data?.results ?? [];
+
+    return results
+      .filter((r) => r.logo_path)
+      .map((r) => ({
+        providerName: r.provider_name,
+        logoUrl: `${TMDB_LOGO_BASE}${r.logo_path}`,
+      }));
+  } catch {
+    return [];
+  }
+}

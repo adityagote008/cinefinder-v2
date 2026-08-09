@@ -10,11 +10,25 @@ export const QUICK_PICKS: QuickPick[] = [
 ];
 
 // ---- Slide 2: streaming platforms the viewer has access to ----
+// Keywords used to match each platform against TMDB's watch-provider list
+// (see lib/tmdb.ts getWatchProviderLogos) — several candidates per platform
+// since TMDB's naming can lag behind real-world rebrands (e.g. the
+// JioCinema/Hotstar merger).
+export const PLATFORM_TMDB_MATCH: Record<string, string[]> = {
+  netflix: ["netflix"],
+  "prime-video": ["amazon prime video", "prime video"],
+  jiohotstar: ["jiohotstar", "hotstar", "jiocinema"],
+  zee5: ["zee5"],
+  sonyliv: ["sonyliv", "sony liv"],
+  "apple-tv": ["apple tv"],
+  "mx-player": ["mx player"],
+  youtube: ["youtube"],
+};
+
 export const PLATFORM_OPTIONS: ChipOption[] = [
   { id: "netflix", label: "Netflix", emoji: "🔴" },
   { id: "prime-video", label: "Prime Video", emoji: "🔵" },
-  { id: "disney-hotstar", label: "Disney+ Hotstar", emoji: "⭐" },
-  { id: "jiocinema", label: "JioCinema", emoji: "🎦" },
+  { id: "jiohotstar", label: "JioHotstar", emoji: "⭐" },
   { id: "zee5", label: "ZEE5", emoji: "🟣" },
   { id: "sonyliv", label: "SonyLIV", emoji: "📺" },
   { id: "apple-tv", label: "Apple TV+", emoji: "🍎" },

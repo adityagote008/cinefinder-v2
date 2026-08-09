@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { PLATFORM_OPTIONS } from "@/lib/constants";
 import Header from "./Header";
@@ -21,6 +22,26 @@ export default function PlatformsScreen({
   onSkip,
   onReset,
 }: PlatformsScreenProps) {
+  // Real brand logos fetched from TMDB's official watch-provider data.
+  // Falls back to the emoji per platform if a logo isn't found (offline,
+  // TMDB naming mismatch, etc.) — never blocks the screen from working.
+  const [logos, setLogos] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/watch-providers")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setLogos(data.logos ?? {});
+      })
+      .catch(() => {
+        // Logos are cosmetic — emoji fallback covers this silently.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header showReset onReset={onReset} />
@@ -41,6 +62,7 @@ export default function PlatformsScreen({
               key={opt.id}
               label={opt.label}
               emoji={opt.emoji}
+              logoUrl={logos[opt.id]}
               active={selected.includes(opt.id)}
               onClick={() => onToggle(opt.id)}
             />

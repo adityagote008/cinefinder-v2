@@ -11,12 +11,19 @@ import Footer from "./Footer";
 interface HomeScreenProps {
   onQuickPick: (pick: QuickPick) => void;
   onCustomFilters: () => void;
+  onOpenWatchlist: () => void;
+  watchlistCount: number;
 }
 
-export default function HomeScreen({ onQuickPick, onCustomFilters }: HomeScreenProps) {
+export default function HomeScreen({
+  onQuickPick,
+  onCustomFilters,
+  onOpenWatchlist,
+  watchlistCount,
+}: HomeScreenProps) {
   return (
     <div className="min-h-screen pb-4">
-      <Header />
+      <Header onWatchlist={onOpenWatchlist} watchlistCount={watchlistCount} />
       <Hero />
       <QuickPickGrid onSelect={onQuickPick} />
       <CustomFilterButton onClick={onCustomFilters} />

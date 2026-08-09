@@ -1,31 +1,39 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface FilterChipProps {
   label: string;
   emoji?: string;
+  logoUrl?: string;
   active: boolean;
   onClick: () => void;
 }
 
-export default function FilterChip({ label, emoji, active, onClick }: FilterChipProps) {
+export default function FilterChip({ label, emoji, logoUrl, active, onClick }: FilterChipProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "shrink-0 rounded-full border px-4 py-2.5 text-[14px] font-medium transition-colors duration-200 ease-out",
+        "flex shrink-0 items-center rounded-full border px-4 py-2.5 text-[14px] font-medium transition-colors duration-200 ease-out",
         active
           ? "border-red-primary bg-red-darker/40 text-red-primary font-bold"
           : "border-border-chip bg-bg-chip text-ink-secondary hover:border-ink-muted/60"
       )}
     >
-      {emoji && (
-        <span className="mr-1.5" aria-hidden="true">
-          {emoji}
+      {logoUrl ? (
+        <span className="relative mr-2 h-4 w-4 shrink-0 overflow-hidden rounded-full bg-white/10">
+          <Image src={logoUrl} alt="" fill sizes="16px" className="object-cover" />
         </span>
+      ) : (
+        emoji && (
+          <span className="mr-1.5" aria-hidden="true">
+            {emoji}
+          </span>
+        )
       )}
       {label}
     </button>

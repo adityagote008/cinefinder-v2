@@ -5,12 +5,16 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Comment, Movie, MovieDetails } from "@/types";
 import Header from "./Header";
-import { ArrowLeft } from "./icons";
+import { ArrowLeft, Heart } from "./icons";
 
 interface MovieDetailsScreenProps {
   movie: Movie;
   onBack: () => void;
   onReset: () => void;
+  isSaved: boolean;
+  onToggleWatchlist: (movie: Movie) => void;
+  onOpenWatchlist: () => void;
+  watchlistCount: number;
 }
 
 // Comments are personal notes saved only on this device (localStorage) —
@@ -38,7 +42,15 @@ function saveNotes(movie: Movie, notes: Comment[]) {
   }
 }
 
-export default function MovieDetailsScreen({ movie, onBack, onReset }: MovieDetailsScreenProps) {
+export default function MovieDetailsScreen({
+  movie,
+  onBack,
+  onReset,
+  isSaved,
+  onToggleWatchlist,
+  onOpenWatchlist,
+  watchlistCount,
+}: MovieDetailsScreenProps) {
   const [details, setDetails] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +117,12 @@ export default function MovieDetailsScreen({ movie, onBack, onReset }: MovieDeta
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header showReset onReset={onReset} />
+      <Header
+        showReset
+        onReset={onReset}
+        onWatchlist={onOpenWatchlist}
+        watchlistCount={watchlistCount}
+      />
 
       <div className="px-5 pt-4">
         <button
@@ -140,13 +157,24 @@ export default function MovieDetailsScreen({ movie, onBack, onReset }: MovieDeta
             {movie.year} · {movie.genre}
             {details?.director ? ` · Directed by ${details.director}` : ""}
           </p>
-          <span className="mt-2 inline-block rounded-full border border-red-900/40 bg-red-darker/30 px-2.5 py-1 text-[12px] font-bold text-red-primary">
-            ★ {movie.rating}
+          <span className="mt-2 inline-flex items-center gap-2">
+            <span className="rounded-full border border-red-900/40 bg-red-darker/30 px-2.5 py-1 text-[12px] font-bold text-red-primary">
+              ★ {movie.rating}
+            </span>
+            <button
+              type="button"
+              onClick={() => onToggleWatchlist(movie)}
+              aria-pressed={isSaved}
+              className="flex items-center gap-1.5 rounded-full border border-border-chip bg-bg-chip px-3 py-1 text-[12px] font-semibold text-ink-secondary transition-colors duration-200 ease-out hover:text-red-primary hover:border-red-900/50"
+            >
+              <Heart className="h-3.5 w-3.5" filled={isSaved} />
+              {isSaved ? "Saved" : "Save"}
+            </button>
           </span>
         </div>
 
         {loading && (
-          <p className="mt-8 text-[14px] text-ink-muted">Loading trailer and details…</p>
+          <p className="mt-8 text-[14px] text-ink-muted">Pulling up the trailer…</p>
         )}
 
         {error && !loading && (
@@ -227,7 +255,7 @@ export default function MovieDetailsScreen({ movie, onBack, onReset }: MovieDeta
         {/* Personal notes — device-only, not a shared public comment section */}
         <section className="mt-8 border-t border-border-subtle pt-6">
           <h2 className="mb-1 text-[13px] font-bold tracking-widest2 text-ink-muted">
-            💬 YOUR WATCHING EXPERIENCE
+            💬 WHAT DID YOU THINK?
           </h2>
           <p className="mb-4 text-[12px] text-ink-muted">
             Saved privately on this device only — not shared with other visitors.

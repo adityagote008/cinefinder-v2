@@ -1,4 +1,4 @@
-export type Screen = "home" | "platforms" | "preferences" | "filters" | "results" | "details";
+export type Screen = "home" | "platforms" | "preferences" | "filters" | "results" | "details" | "watchlist";
 
 export interface QuickPick {
   id: string;

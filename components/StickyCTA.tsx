@@ -26,7 +26,7 @@ export default function StickyCTA({
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-red-bright to-red-deep py-4 text-[16px] font-bold text-white shadow-red-glow-lg disabled:opacity-50"
       >
         <span aria-hidden="true">🎬</span>
-        {loading ? "Finding movies…" : `Find My Movies (${filterCount} filters)`}
+        {loading ? "Let me think…" : `Find My Movies (${filterCount} filters)`}
       </motion.button>
     </div>
   );

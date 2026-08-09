@@ -32,7 +32,7 @@ export default function PreferencesScreen({
 
       <div className="flex-1 px-5 pt-6">
         <h2 className="text-[22px] font-extrabold text-ink-primary">
-          Fine-tune the details
+          Let&rsquo;s narrow it down
         </h2>
         <p className="mt-1.5 text-[14px] text-ink-secondary">
           Pick as many as apply — this helps us get even closer to your exact vibe.
