@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Comment, Movie } from "@/types";
 import { generateMovieCard, generateReviewCard } from "@/lib/shareCard";
+import { SITE_URL } from "@/lib/seo";
 import { X, Share } from "./icons";
 
 type CardTab = "movie" | "review";
@@ -68,16 +69,43 @@ export default function ShareModal({ movie, latestReview, synopsis, onClose }: S
   async function handleNativeShare() {
     if (!blob) return;
     setStatus(null);
+
+    // This is the tap-through part: the deep link back into this exact
+    // movie's trailer page. Sent alongside the image so the recipient sees
+    // your card AND has something to actually tap — a plain image can
+    // never be clickable on its own on any platform, this is the closest
+    // real equivalent.
+    const shareUrl =
+      movie.tmdbId && movie.mediaType
+        ? `${SITE_URL}/share/${movie.tmdbId}/${movie.mediaType}`
+        : SITE_URL;
+
     try {
       const file = new File([blob], "cinefinder-card.png", { type: "image/png" });
-      if (typeof navigator !== "undefined" && "canShare" in navigator && navigator.canShare({ files: [file] })) {
+      const canShareFiles =
+        typeof navigator !== "undefined" &&
+        "canShare" in navigator &&
+        navigator.canShare({ files: [file] });
+
+      if (canShareFiles) {
         await navigator.share({
           files: [file],
           title: `${movie.title} — CineFinder`,
+          text: `${movie.title} — tap to watch the trailer on CineFinder`,
+          url: shareUrl,
+        });
+      } else if (typeof navigator !== "undefined" && navigator.share) {
+        // Can't attach the image on this browser, but the link (with its
+        // own rich preview) still gets through.
+        await navigator.share({
+          title: `${movie.title} — CineFinder`,
+          text: `${movie.title} — tap to watch the trailer on CineFinder`,
+          url: shareUrl,
         });
       } else {
         handleSave();
-        setStatus("Your browser can't share images directly — saved it instead!");
+        if (navigator.clipboard) await navigator.clipboard.writeText(shareUrl);
+        setStatus("Image saved and link copied — send both together!");
       }
     } catch (err) {
       if (err instanceof Error && err.name !== "AbortError") {
@@ -167,6 +195,10 @@ export default function ShareModal({ movie, latestReview, synopsis, onClose }: S
               {status}
             </p>
           )}
+
+          <p className="px-5 pb-2 text-center text-[11px] text-ink-muted">
+            Share sends the card image with a tap-through link to this movie&rsquo;s trailer page.
+          </p>
 
           <div className="flex gap-3 border-t border-border-subtle p-5">
             <button
