@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Comment, Movie, MovieDetails } from "@/types";
-import { generateShareCard } from "@/lib/shareCard";
-import { SITE_URL } from "@/lib/seo";
 import Header from "./Header";
+import ShareModal from "./ShareModal";
 import { ArrowLeft, Heart, Share } from "./icons";
 
 interface MovieDetailsScreenProps {
@@ -64,9 +63,7 @@ export default function MovieDetailsScreen({
   const [draftRating, setDraftRating] = useState(0);
   const [draftText, setDraftText] = useState("");
 
-  const [sharing, setSharing] = useState(false);
-  const [shareMessage, setShareMessage] = useState<string | null>(null);
-  const [downloadingCard, setDownloadingCard] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
     setNotes(loadNotes(movie));
@@ -121,64 +118,6 @@ export default function MovieDetailsScreen({
     saveNotes(movie, updated);
     setDraftText("");
     setDraftRating(0);
-  }
-
-  async function handleShare() {
-    setSharing(true);
-    setShareMessage(null);
-    try {
-      // This URL is what makes the "movie card" actually happen: it has
-      // per-movie metadata + a dynamically generated preview image, so
-      // WhatsApp/Telegram/iMessage/etc. render it as a big tappable card
-      // right in the chat — not a plain blue link. Tapping it opens
-      // straight into this movie's trailer page.
-      const shareUrl =
-        movie.tmdbId && movie.mediaType
-          ? `${SITE_URL}/share/${movie.tmdbId}/${movie.mediaType}`
-          : SITE_URL;
-
-      const shareText = `${movie.title} (${movie.year}) — ${movie.reason}`;
-
-      if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({
-          title: `${movie.title} — CineFinder`,
-          text: shareText,
-          url: shareUrl,
-        });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareUrl);
-        setShareMessage("Link copied! Paste it anywhere — it'll show up as a movie card.");
-      }
-    } catch (err) {
-      // AbortError just means the person closed the native share sheet —
-      // not a real failure, so stay quiet about it.
-      if (err instanceof Error && err.name !== "AbortError") {
-        setShareMessage("Couldn't share right now — try again.");
-      }
-    } finally {
-      setSharing(false);
-    }
-  }
-
-  // Separate from the main Share button — this is specifically for posting
-  // to Instagram/Snapchat Stories, which need an actual image file since
-  // they don't render link previews the way chat apps do.
-  async function handleDownloadCard() {
-    setDownloadingCard(true);
-    try {
-      const blob = await generateShareCard(movie);
-      if (blob) {
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${movie.title.toLowerCase().replace(/\s+/g, "-")}-cinefinder.png`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      } else {
-        setShareMessage("Couldn't generate the card image — try again.");
-      }
-    } finally {
-      setDownloadingCard(false);
-    }
   }
 
   return (
@@ -238,25 +177,13 @@ export default function MovieDetailsScreen({
             </button>
             <button
               type="button"
-              onClick={handleShare}
-              disabled={sharing}
-              className="flex items-center gap-1.5 rounded-full border border-border-chip bg-bg-chip px-3 py-1 text-[12px] font-semibold text-ink-secondary transition-colors duration-200 ease-out hover:text-red-primary hover:border-red-900/50 disabled:opacity-50"
+              onClick={() => setShareModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-full border border-border-chip bg-bg-chip px-3 py-1 text-[12px] font-semibold text-ink-secondary transition-colors duration-200 ease-out hover:text-red-primary hover:border-red-900/50"
             >
               <Share className="h-3.5 w-3.5" />
-              {sharing ? "Preparing…" : "Share"}
-            </button>
-            <button
-              type="button"
-              onClick={handleDownloadCard}
-              disabled={downloadingCard}
-              className="text-[11px] font-medium text-ink-muted underline decoration-dotted transition-colors duration-200 ease-out hover:text-ink-secondary disabled:opacity-50"
-            >
-              {downloadingCard ? "Creating…" : "Download as image (for Stories)"}
+              Share
             </button>
           </span>
-          {shareMessage && (
-            <p className="mt-2 text-[12px] font-medium text-red-primary">{shareMessage}</p>
-          )}
         </div>
 
         {loading && (
@@ -414,6 +341,14 @@ export default function MovieDetailsScreen({
           )}
         </section>
       </div>
+
+      {shareModalOpen && (
+        <ShareModal
+          movie={movie}
+          latestReview={notes[0] ?? null}
+          onClose={() => setShareModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
