@@ -346,6 +346,7 @@ export default function MovieDetailsScreen({
         <ShareModal
           movie={movie}
           latestReview={notes[0] ?? null}
+          synopsis={details?.synopsis}
           onClose={() => setShareModalOpen(false)}
         />
       )}

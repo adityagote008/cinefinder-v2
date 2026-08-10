@@ -11,10 +11,11 @@ type CardTab = "movie" | "review";
 interface ShareModalProps {
   movie: Movie;
   latestReview: Comment | null;
+  synopsis?: string;
   onClose: () => void;
 }
 
-export default function ShareModal({ movie, latestReview, onClose }: ShareModalProps) {
+export default function ShareModal({ movie, latestReview, synopsis, onClose }: ShareModalProps) {
   const [tab, setTab] = useState<CardTab>("movie");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -29,7 +30,7 @@ export default function ShareModal({ movie, latestReview, onClose }: ShareModalP
     const task =
       tab === "review" && latestReview
         ? generateReviewCard(movie, latestReview)
-        : generateMovieCard(movie);
+        : generateMovieCard(movie, synopsis);
 
     task.then((result) => {
       if (cancelled) return;
@@ -44,7 +45,7 @@ export default function ShareModal({ movie, latestReview, onClose }: ShareModalP
     return () => {
       cancelled = true;
     };
-  }, [tab, movie, latestReview]);
+  }, [tab, movie, latestReview, synopsis]);
 
   // Clean up the object URL when the modal closes for good.
   useEffect(() => {

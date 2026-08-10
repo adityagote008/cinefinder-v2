@@ -159,8 +159,9 @@ function drawFooter(ctx: CanvasRenderingContext2D) {
   ctx.fillText("✦  Witness the Cinema  ✦", CARD_WIDTH / 2, CARD_HEIGHT - 60);
 }
 
-// Card 1: the AI-picked premise — what makes this a good watch.
-export async function generateMovieCard(movie: Movie): Promise<Blob | null> {
+// Card 1: the AI-picked premise plus a spoiler-free synopsis — what makes
+// this a good watch, and enough of the actual story to build real interest.
+export async function generateMovieCard(movie: Movie, synopsis?: string): Promise<Blob | null> {
   if (typeof document === "undefined") return null;
   const canvas = document.createElement("canvas");
   canvas.width = CARD_WIDTH;
@@ -168,8 +169,9 @@ export async function generateMovieCard(movie: Movie): Promise<Blob | null> {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  const cursorY = await drawCardHeader(ctx, movie);
+  let cursorY = await drawCardHeader(ctx, movie);
   const pad = 60;
+  const footerY = CARD_HEIGHT - 100; // leave room for the footer tagline
 
   ctx.textAlign = "left";
   ctx.font = "bold 24px Arial, sans-serif";
@@ -178,7 +180,24 @@ export async function generateMovieCard(movie: Movie): Promise<Blob | null> {
 
   ctx.font = "30px Arial, sans-serif";
   ctx.fillStyle = "#c8c8cc";
-  wrapText(ctx, movie.reason, pad, cursorY + 55, CARD_WIDTH - pad * 2, 42, 7);
+  cursorY = wrapText(ctx, movie.reason, pad, cursorY + 55, CARD_WIDTH - pad * 2, 42, 3);
+
+  if (synopsis) {
+    cursorY += 40;
+    ctx.font = "bold 24px Arial, sans-serif";
+    ctx.fillStyle = "#e0a83c";
+    ctx.fillText("THE STORY", pad, cursorY);
+
+    // Whatever vertical room is left before the footer, minus a safety
+    // margin — converted to a line count so long synopses truncate
+    // gracefully instead of ever overlapping the footer.
+    const remainingHeight = footerY - (cursorY + 50);
+    const maxLines = Math.max(2, Math.floor(remainingHeight / 40));
+
+    ctx.font = "28px Arial, sans-serif";
+    ctx.fillStyle = "#9a9aa0";
+    wrapText(ctx, synopsis, pad, cursorY + 50, CARD_WIDTH - pad * 2, 40, maxLines);
+  }
 
   drawFooter(ctx);
   return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png", 0.95));
