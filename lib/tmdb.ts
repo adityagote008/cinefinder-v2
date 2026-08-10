@@ -121,12 +121,25 @@ export async function getMovieDetails(
         ? crew.find((c) => c.job === "Director")?.name ?? null
         : (data?.created_by?.[0]?.name as string | undefined) ?? null;
 
+    const title: string = data?.title ?? data?.name ?? "Untitled";
+    const releaseDate: string = data?.release_date ?? data?.first_air_date ?? "";
+    const year = releaseDate.slice(0, 4) || "—";
+    const genres: Array<{ name: string }> = data?.genres ?? [];
+    const genre = genres.length ? genres.slice(0, 2).map((g) => g.name).join(", ") : "—";
+    const voteAverage: number | undefined = data?.vote_average;
+    const rating = typeof voteAverage === "number" ? `${voteAverage.toFixed(1)}/10` : "N/A";
+
     return {
       trailerKey: trailer?.key ?? null,
       cast,
       director,
       synopsis: data?.overview ?? "",
       backdropUrl: data?.backdrop_path ? `${TMDB_BACKDROP_BASE}${data.backdrop_path}` : null,
+      title,
+      year,
+      genre,
+      rating,
+      posterUrl: data?.poster_path ? `${TMDB_IMAGE_BASE}${data.poster_path}` : null,
     };
   } catch {
     return null;

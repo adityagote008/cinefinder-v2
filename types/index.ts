@@ -59,6 +59,13 @@ export interface MovieDetails {
   director: string | null;
   synopsis: string;
   backdropUrl: string | null;
+  // The fields below let a shared/deep-linked movie reconstruct a full
+  // Movie object without needing anything passed in from a prior search.
+  title: string;
+  year: string;
+  genre: string;
+  rating: string;
+  posterUrl: string | null;
 }
 
 export interface Comment {

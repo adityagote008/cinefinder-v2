@@ -38,6 +38,62 @@ export default function Page() {
 
   const [pendingQuickPick, setPendingQuickPick] = useState<QuickPick | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  // Where "Back" should go from the details screen — normally "results",
+  // but a shared link has no results list behind it, so it goes home instead.
+  const [detailsBackTarget, setDetailsBackTarget] = useState<Screen>("results");
+  const [deepLinkLoading, setDeepLinkLoading] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("movie")
+  );
+
+  // Handles arriving via a shared "Send to a friend" link
+  // (?movie=<tmdbId>&type=movie|tv) — fetches that title's details and
+  // jumps straight to the details screen instead of the home screen.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tmdbId = params.get("movie");
+    const mediaType = params.get("type");
+    if (!tmdbId || (mediaType !== "movie" && mediaType !== "tv")) return;
+
+    let cancelled = false;
+    setDeepLinkLoading(true);
+
+    fetch("/api/movie-details", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tmdbId: Number(tmdbId), mediaType }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.details) return;
+        const d = data.details;
+        setSelectedMovie({
+          title: d.title,
+          year: d.year,
+          genre: d.genre,
+          rating: d.rating,
+          reason: "Shared with you via CineFinder.",
+          posterUrl: d.posterUrl ?? null,
+          tmdbId: Number(tmdbId),
+          mediaType,
+        });
+        setDetailsBackTarget("home");
+        setScreen("details");
+      })
+      .catch(() => {
+        // Broken/expired share link — just land on the normal home screen.
+      })
+      .finally(() => {
+        if (!cancelled) setDeepLinkLoading(false);
+      });
+
+    // Clean the URL so refreshing or navigating away doesn't keep
+    // re-triggering this, and Reset behaves normally afterward.
+    window.history.replaceState({}, "", window.location.pathname);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Where to return to when the person taps "Back" from the Watchlist —
   // whichever screen they opened it from.
@@ -204,13 +260,14 @@ export default function Page() {
 
   const handleSelectMovie = useCallback((movie: Movie) => {
     setSelectedMovie(movie);
+    setDetailsBackTarget("results");
     setScreen("details");
   }, []);
 
   const handleBackFromDetails = useCallback(() => {
     setSelectedMovie(null);
-    setScreen("results");
-  }, []);
+    setScreen(detailsBackTarget);
+  }, [detailsBackTarget]);
 
   const handleReset = useCallback(() => {
     clearAll();
@@ -226,6 +283,14 @@ export default function Page() {
     // Note: the watchlist is intentionally NOT cleared on reset — it's
     // meant to persist across sessions, that's the whole point of it.
   }, [clearAll]);
+
+  if (deepLinkLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <p className="text-[14px] text-ink-muted">Opening your shared pick…</p>
+      </div>
+    );
+  }
 
   if (screen === "home") {
     return (
@@ -286,6 +351,12 @@ export default function Page() {
   }
 
   if (screen === "details" && selectedMovie) {
+    const backLabel =
+      detailsBackTarget === "home"
+        ? "Back to home"
+        : detailsBackTarget === "watchlist"
+        ? "Back to watchlist"
+        : "Back to results";
     return (
       <MovieDetailsScreen
         movie={selectedMovie}
@@ -297,6 +368,7 @@ export default function Page() {
         onToggleWatchlist={handleToggleWatchlist}
         onOpenWatchlist={handleOpenWatchlist}
         watchlistCount={watchlist.length}
+        backLabel={backLabel}
       />
     );
   }
@@ -305,7 +377,11 @@ export default function Page() {
     return (
       <WatchlistScreen
         watchlist={watchlist}
-        onSelectMovie={handleSelectMovie}
+        onSelectMovie={(movie) => {
+          setSelectedMovie(movie);
+          setDetailsBackTarget("watchlist");
+          setScreen("details");
+        }}
         onToggleWatchlist={handleToggleWatchlist}
         onBack={() => setScreen(screenBeforeWatchlist)}
         onReset={handleReset}
