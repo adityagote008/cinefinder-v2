@@ -154,9 +154,14 @@ async function drawCardHeader(ctx: CanvasRenderingContext2D, movie: Movie): Prom
 
 function drawFooter(ctx: CanvasRenderingContext2D) {
   ctx.textAlign = "center";
+
+  ctx.font = "bold 22px Arial, sans-serif";
+  ctx.fillStyle = "#e0202f";
+  ctx.fillText("Find YOUR perfect watch, free →", CARD_WIDTH / 2, CARD_HEIGHT - 92);
+
   ctx.font = "italic bold 22px Arial, sans-serif";
   ctx.fillStyle = "#e0a83c";
-  ctx.fillText("✦  Witness the Cinema  ✦", CARD_WIDTH / 2, CARD_HEIGHT - 60);
+  ctx.fillText("✦  Witness the Cinema  ✦", CARD_WIDTH / 2, CARD_HEIGHT - 55);
 }
 
 // Card 1: the AI-picked premise plus a spoiler-free synopsis — what makes
@@ -171,7 +176,7 @@ export async function generateMovieCard(movie: Movie, synopsis?: string): Promis
 
   let cursorY = await drawCardHeader(ctx, movie);
   const pad = 60;
-  const footerY = CARD_HEIGHT - 100; // leave room for the footer tagline
+  const footerY = CARD_HEIGHT - 130; // leave room for the two-line footer
 
   ctx.textAlign = "left";
   ctx.font = "bold 24px Arial, sans-serif";

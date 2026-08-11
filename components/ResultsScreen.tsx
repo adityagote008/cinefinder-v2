@@ -6,6 +6,7 @@ import { isInWatchlist } from "@/lib/watchlist";
 import Header from "./Header";
 import ResultsHeader from "./ResultsHeader";
 import MovieCard from "./MovieCard";
+import SkeletonCard from "./SkeletonCard";
 import { ArrowLeft } from "./icons";
 
 interface ResultsScreenProps {
@@ -59,16 +60,18 @@ export default function ResultsScreen({
         )}
 
         <div className="mt-5 flex flex-col gap-3">
-          {movies.map((movie, i) => (
-            <MovieCard
-              key={`${movie.title}-${i}`}
-              movie={movie}
-              index={i}
-              onSelect={onSelectMovie}
-              isSaved={isInWatchlist(watchlist, movie.title)}
-              onToggleWatchlist={onToggleWatchlist}
-            />
-          ))}
+          {loading && movies.length === 0
+            ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+            : movies.map((movie, i) => (
+                <MovieCard
+                  key={`${movie.title}-${i}`}
+                  movie={movie}
+                  index={i}
+                  onSelect={onSelectMovie}
+                  isSaved={isInWatchlist(watchlist, movie.title)}
+                  onToggleWatchlist={onToggleWatchlist}
+                />
+              ))}
         </div>
 
         <div className="mt-6 flex flex-col gap-3">

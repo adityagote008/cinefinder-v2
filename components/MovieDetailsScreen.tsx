@@ -187,7 +187,23 @@ export default function MovieDetailsScreen({
         </div>
 
         {loading && (
-          <p className="mt-8 text-[14px] text-ink-muted">Pulling up the trailer…</p>
+          <div className="mt-8 flex flex-col gap-8">
+            <div className="aspect-video w-full animate-pulse rounded-2xl bg-bg-chip" />
+            <div className="flex flex-col gap-2.5">
+              <div className="h-3 w-32 animate-pulse rounded bg-bg-chip" />
+              <div className="h-3 w-full animate-pulse rounded bg-bg-chip" />
+              <div className="h-3 w-5/6 animate-pulse rounded bg-bg-chip" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-bg-chip" />
+            </div>
+            <div className="flex gap-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="w-20 shrink-0 text-center">
+                  <div className="mx-auto h-20 w-20 animate-pulse rounded-full bg-bg-chip" />
+                  <div className="mx-auto mt-1.5 h-2.5 w-14 animate-pulse rounded bg-bg-chip" />
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {error && !loading && (

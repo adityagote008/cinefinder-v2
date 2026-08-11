@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       platforms = [],
       languages = [],
       runtimes = [],
+      tasteSignals = [],
       excludeTitles = [],
       count = 5,
     } = body ?? {};
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
       excludeTitles,
       count: Math.min(Math.max(Number(count) || 5, 1), 10),
       trendingTitles,
+      tasteSignals,
     });
 
     const moviesWithPosters = await enrichWithPosters(movies);

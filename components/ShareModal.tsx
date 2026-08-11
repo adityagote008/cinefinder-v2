@@ -91,7 +91,7 @@ export default function ShareModal({ movie, latestReview, synopsis, onClose }: S
         await navigator.share({
           files: [file],
           title: `${movie.title} — CineFinder`,
-          text: `${movie.title} — tap to watch the trailer on CineFinder`,
+          text: `${movie.title} — tap to watch the trailer, and find your own perfect watch on CineFinder`,
           url: shareUrl,
         });
       } else if (typeof navigator !== "undefined" && navigator.share) {
@@ -99,7 +99,7 @@ export default function ShareModal({ movie, latestReview, synopsis, onClose }: S
         // own rich preview) still gets through.
         await navigator.share({
           title: `${movie.title} — CineFinder`,
-          text: `${movie.title} — tap to watch the trailer on CineFinder`,
+          text: `${movie.title} — tap to watch the trailer, and find your own perfect watch on CineFinder`,
           url: shareUrl,
         });
       } else {

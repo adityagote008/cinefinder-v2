@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FilterGroupKey, FilterState } from "@/types";
+import { loadSavedFilters, saveFilters } from "@/lib/preferences";
 
 const EMPTY_STATE: FilterState = {
   mood: [],
@@ -12,7 +13,15 @@ const EMPTY_STATE: FilterState = {
 };
 
 export function useFilters() {
-  const [filters, setFilters] = useState<FilterState>(EMPTY_STATE);
+  // Starts from whatever was saved last time (if anything), so a
+  // returning visitor doesn't begin from a blank slate.
+  const [filters, setFilters] = useState<FilterState>(
+    () => loadSavedFilters() ?? EMPTY_STATE
+  );
+
+  useEffect(() => {
+    saveFilters(filters);
+  }, [filters]);
 
   const toggle = useCallback((group: FilterGroupKey, id: string) => {
     setFilters((prev) => {

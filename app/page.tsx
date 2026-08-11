@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FILTER_GROUPS, LANGUAGE_OPTIONS, RUNTIME_OPTIONS, PLATFORM_OPTIONS } from "@/lib/constants";
 import { getWatchlist, toggleWatchlist } from "@/lib/watchlist";
+import { loadSavedPrefs, savePrefs } from "@/lib/preferences";
 import { Movie, QuickPick, Screen } from "@/types";
 import { useFilters } from "@/hooks/useFilters";
 import HomeScreen from "@/components/HomeScreen";
@@ -115,9 +116,20 @@ export default function Page() {
   }, [screen]);
 
   // Slide 2 + Slide 3 state — precision-narrowing preferences (all multi-select)
-  const [platforms, setPlatforms] = useState<string[]>([]);
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [runtimes, setRuntimes] = useState<string[]>([]);
+  // Starts from whatever was saved last time, same as the filters above.
+  const [platforms, setPlatforms] = useState<string[]>(
+    () => loadSavedPrefs()?.platforms ?? []
+  );
+  const [languages, setLanguages] = useState<string[]>(
+    () => loadSavedPrefs()?.languages ?? []
+  );
+  const [runtimes, setRuntimes] = useState<string[]>(
+    () => loadSavedPrefs()?.runtimes ?? []
+  );
+
+  useEffect(() => {
+    savePrefs({ platforms, languages, runtimes });
+  }, [platforms, languages, runtimes]);
 
   const { filters, toggle, setSearchQuery, clearAll, totalCount } = useFilters();
 
@@ -172,6 +184,9 @@ export default function Page() {
             platforms: ctx.platforms.map((id) => labelFor(PLATFORM_OPTIONS, id)),
             languages: ctx.languages.map((id) => labelFor(LANGUAGE_OPTIONS, id)),
             runtimes: ctx.runtimes.map((id) => labelFor(RUNTIME_OPTIONS, id)),
+            // Soft personalization signal — the AI is told to use this only
+            // as a taste hint, never a hard requirement.
+            tasteSignals: watchlist.slice(0, 8).map((m) => m.title),
             excludeTitles,
             count,
           }),
@@ -188,7 +203,7 @@ export default function Page() {
         setLoading(false);
       }
     },
-    []
+    [watchlist]
   );
 
   const handleQuickPick = useCallback((pick: QuickPick) => {
@@ -200,6 +215,44 @@ export default function Page() {
     setPendingQuickPick(null);
     setScreen("platforms");
   }, []);
+
+  // Zero-click instant pick — skips Platforms/Preferences/Filters entirely
+  // and goes straight to results. Randomizes a mood + genre pairing each
+  // time so repeated presses actually feel different, not just the same
+  // generic "surprise me" prompt.
+  const handleSurpriseMe = useCallback(async () => {
+    const moodGroup = FILTER_GROUPS.find((g) => g.key === "mood");
+    const genreGroup = FILTER_GROUPS.find((g) => g.key === "genre");
+    const randomMood = moodGroup
+      ? moodGroup.options[Math.floor(Math.random() * moodGroup.options.length)]
+      : null;
+    const randomGenre = genreGroup
+      ? genreGroup.options[Math.floor(Math.random() * genreGroup.options.length)]
+      : null;
+
+    const flavor = [randomMood?.label, randomGenre?.label].filter(Boolean).join(", ");
+    const searchQuery = flavor
+      ? `Surprise me with something excellent and a bit ${flavor.toLowerCase()} — anything goes, be bold and varied.`
+      : "Surprise me with something excellent — anything goes, be bold and varied.";
+
+    const ctx: ResultsContext = {
+      title: "Surprise Me",
+      mood: [],
+      genre: [],
+      category: [],
+      style: [],
+      searchQuery,
+      platforms: [],
+      languages: [],
+      runtimes: [],
+    };
+    setPendingQuickPick(null);
+    setResultsCtx(ctx);
+    setMovies([]);
+    setScreen("results");
+    const newMovies = await fetchRecommendations(ctx, [], 5);
+    setMovies(newMovies);
+  }, [fetchRecommendations]);
 
   // Lets the step dots (or a screen's own "Back" link) jump directly to any
   // step already reached — never forward to one that hasn't been visited yet.
@@ -297,6 +350,8 @@ export default function Page() {
       <HomeScreen
         onQuickPick={handleQuickPick}
         onCustomFilters={handleCustomFilters}
+        onSurpriseMe={handleSurpriseMe}
+        surpriseLoading={loading}
         onOpenWatchlist={handleOpenWatchlist}
         watchlistCount={watchlist.length}
       />

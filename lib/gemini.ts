@@ -17,9 +17,16 @@ interface GeminiRequestParams {
   excludeTitles: string[];
   count: number;
   trendingTitles?: string[];
+  tasteSignals?: string[];
 }
 
-function buildPrompt({ filters, excludeTitles, count, trendingTitles }: GeminiRequestParams): string {
+function buildPrompt({
+  filters,
+  excludeTitles,
+  count,
+  trendingTitles,
+  tasteSignals,
+}: GeminiRequestParams): string {
   const parts: string[] = [];
   if (filters.searchQuery) parts.push(`Free-text request: "${filters.searchQuery}"`);
   if (filters.mood.length) parts.push(`Mood: ${filters.mood.join(", ")}`);
@@ -46,16 +53,23 @@ function buildPrompt({ filters, excludeTitles, count, trendingTitles }: GeminiRe
     ? `\n\nFor awareness only — these titles are verified to be genuinely trending this week: ${trendingTitles.join(", ")}. If one is a strong match for the criteria above, feel free to include it; otherwise ignore this list entirely and recommend your best matches regardless of whether they're on it.`
     : "";
 
+  // Soft personalization: titles this viewer previously saved, used only to
+  // infer general taste (genres/tones they gravitate to) — never a
+  // requirement to match, and never a source of titles to recommend outright.
+  const tasteContext = tasteSignals?.length
+    ? `\n\nFor additional personalization only — this viewer has previously saved these titles to their watchlist, which hints at their general taste: ${tasteSignals.join(", ")}. Let this softly inform tone/genre leanings if it fits naturally with the criteria above; do not let it override the explicit criteria, and do not simply recommend more titles by the same director/franchise unless that's a genuine strong match.`
+    : "";
+
   return `You are a movie/TV recommendation engine. Based on the following criteria, recommend exactly ${count} titles.
 
-${criteria}${exclusions}${trendingContext}
+${criteria}${exclusions}${trendingContext}${tasteContext}
 
 Respond with ONLY a raw JSON array (no markdown, no code fences, no commentary) of objects shaped exactly like:
 [{"title": string, "year": string, "genre": string, "rating": string, "reason": string}]
 
 Rules:
 - "rating" should be an approximate IMDb-style rating like "8.2/10".
-- "reason" is a single enticing sentence (max 20 words) explaining why it fits the criteria — mention the platform, language, or runtime fit if those were specified.
+- "reason" is a single enticing sentence (max 20 words) explaining why it fits the criteria — mention the platform, language, or runtime fit if those were specified. If a title is recommended partly because it resembles something in the viewer's saved watchlist, you may briefly note that connection (e.g., "In the same vein as your saved picks") — but only when it's a genuine, specific similarity, not by default.
 - "reason" must NEVER reveal plot twists, endings, deaths, or major turning points — describe only premise, tone, and genre appeal, the way an official trailer or streaming service blurb would.
 - Only recommend real, existing titles.
 - Unless the person's criteria specifically call for classics, favor a mix that includes newer/recent titles alongside well-regarded older ones rather than skewing entirely toward decades-old picks — but never invent a title or release date; only include something you're confident actually exists.
