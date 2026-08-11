@@ -68,6 +68,36 @@ export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
+// Structured data (JSON-LD) — tells search engines exactly what this site
+// is in a format they can parse directly, rather than guessing from page
+// text. Only factual, verifiable fields are included here — no fabricated
+// ratings or review counts, since Google penalizes structured data that
+// can't be backed up on the actual page.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "CineFinder",
+  alternateName: "CineFinder by ASG",
+  description,
+  url: SITE_URL,
+  applicationCategory: "EntertainmentApplication",
+  operatingSystem: "Any",
+  browserRequirements: "Requires a modern web browser",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  author: {
+    "@type": "Person",
+    name: "Aditya Gote",
+  },
+  creator: {
+    "@type": "Person",
+    name: "Aditya Gote",
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -76,6 +106,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-black text-ink-primary antialiased min-h-screen">
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
       </body>
     </html>
