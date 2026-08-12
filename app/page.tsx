@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FILTER_GROUPS, LANGUAGE_OPTIONS, RUNTIME_OPTIONS, PLATFORM_OPTIONS } from "@/lib/constants";
-import { getWatchlist, toggleWatchlist } from "@/lib/watchlist";
+import { getWatchlist, toggleWatchlist, mergeWatchlist } from "@/lib/watchlist";
 import { loadSavedPrefs, savePrefs } from "@/lib/preferences";
 import { Movie, QuickPick, Screen } from "@/types";
 import { useFilters } from "@/hooks/useFilters";
@@ -109,6 +109,21 @@ export default function Page() {
   const handleToggleWatchlist = useCallback((movie: Movie) => {
     setWatchlist((prev) => toggleWatchlist(prev, movie));
   }, []);
+
+  // Returns how many titles were actually new, so the Watchlist screen can
+  // show an accurate confirmation message. Computed directly from the
+  // current watchlist rather than inside the setState updater, since
+  // reading a value back out of an updater function isn't a reliable
+  // pattern in React.
+  const handleImportWatchlist = useCallback(
+    (incoming: Movie[]) => {
+      const updated = mergeWatchlist(watchlist, incoming);
+      const addedCount = updated.length - watchlist.length;
+      setWatchlist(updated);
+      return addedCount;
+    },
+    [watchlist]
+  );
 
   const handleOpenWatchlist = useCallback(() => {
     setScreenBeforeWatchlist(screen);
@@ -438,6 +453,7 @@ export default function Page() {
           setScreen("details");
         }}
         onToggleWatchlist={handleToggleWatchlist}
+        onImport={handleImportWatchlist}
         onBack={() => setScreen(screenBeforeWatchlist)}
         onReset={handleReset}
       />
